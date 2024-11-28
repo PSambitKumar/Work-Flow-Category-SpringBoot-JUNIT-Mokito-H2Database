@@ -1,0 +1,118 @@
+swagger: '2.0'
+info:
+  title: Update Workflow Status API
+  description: "As soon as the process is started in the platform the workflow status has to be changed as in-process for particular booking in any one of the applications (FIRA/CIRA/LTK/LARA) system based on country. Different workflow queues to follow up the progress on the preparation of freight until its invoicing."
+  version: 1.0.0
+schemes:
+  - https
+basePath: /gbsera/customercare/fai/v1
+securityDefinitions:
+  oAuthBE:
+    type: oauth2
+    flow: application
+    tokenUrl: https://auth.cma-cgm.com/as/token.oauth2
+    scopes:
+      updatestatus:write:be: read access
+  oAuthFE:
+    type: oauth2
+    flow: accessCode
+    tokenUrl: https://auth.cma-cgm.com/as/token.oauth2
+    authorizationUrl: https://auth.cma-cgm.com/as/authorization.oauth2
+    scopes:
+      updatestatus:write:fe: read access
+tags:
+  - name: Workflow Status Update
+    description: This API is dedicated to update workflow status based on country code.
+produces:
+  - application/json
+paths:
+  '/updateStatus':
+    put:
+      tags:
+        - Workflow Status Update
+      summary: This method allows to update workflow status based on country code.
+      description: This API is dedicated to update the workflow status in any one of applications (FIRA, CIRA, LTK, LARA) system based on country.
+      operationId: updateStatus
+      consumes:
+        - application/json
+      parameters:
+        - in : body
+          name : workflowStatusUpdateRequest
+          description : >-
+            <p> Workflow Status Update Request
+          required : true
+          schema:
+            $ref: '#/definitions/WorkflowStatusUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          schema:
+            $ref: '#/definitions/WorkflowStatusUpdateResponse'
+        '400':
+          description: Bad request (invalid or missing required fields)
+          schema:
+            $ref: '#/definitions/ErrorDetails'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorDetails'
+      security:
+        - oAuthBE:
+            - updatestatus:write:be
+        - oAuthFE:
+            - updatestatus:write:fe
+definitions:
+  WorkflowStatusUpdateRequest:
+    type: object
+    properties:
+      bookingRef:
+        type: string
+        description: Reason for the RFI.
+        example: "bookingRef1"
+      status:
+        type: string
+        description: "Status for the booking ref."
+        example: "Processing"
+      countryCode:
+        type: string
+        description: "Country Code for the booking ref."
+        example: "US"
+    required:
+      - bookingRef
+      - status
+      - countryCode
+  WorkflowStatusUpdateResponse:
+    type: object
+    properties: 
+        bookingRef:
+          type: string
+          description: "Reference of the booking in the CMA CGM system"
+          example: "bookingRef1"
+        success:
+          type: boolean
+          description: "Will return true if status updated successfully"
+          example: true
+        errors:
+          type: array
+          items:
+            type: string
+          description: "Returns the errors if any issues"
+          example: []
+  ErrorDetails:
+    type: object
+    properties:
+      reason:
+        type: string
+        description: >-
+          HTTP error or Free text such as  Database Not Available , Invalid
+          Credential, Mandatory, Invalid Format,  Invalid Length,
+          ForbiddenValue, Invalid Data,...
+        example: '500 Internal server error'
+      code:
+        type: string
+        description: 'Error Id, Application error ID, ....'
+        example: '503'
+      description:
+        type: string
+        description: Human-readable error description including Data and Value
+        example: 'Cannot update workflow status'
